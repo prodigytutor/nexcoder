@@ -20,7 +20,50 @@ const nanoid = customAlphabet(
   "0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz",
   7,
 ); // 7-character random string
-
+export const createProject = async (formData: FormData) => {
+  const session = await getSession();
+  if (!session?.user.id) {
+    return {
+      error: "Not authenticated",
+    };
+  }
+  const name = formData.get("name") as string;
+  const description = formData.get("description") as string;
+  const subdomain = formData.get("subdomain") as string;
+  const html = formData.get("html") as string;
+  const css = formData.get("css") as string;
+  const javascript = formData.get("javascript") as string;
+  try {
+    const response = await prisma.project.create({
+      data: {
+        name,
+        description,
+        html,
+        css,
+        javascript,
+        user: {
+          connect: {
+            id: session.user.id,
+          },
+        },
+      },
+    });
+    // await revalidateTag(
+    //   `${subdomain}.${process.env.NEXT_PUBLIC_ROOT_DOMAIN}-metadata`,
+    // );
+    return response;
+  } catch (error: any) {
+    if (error.code === "P2002") {
+      return {
+        error: `This subdomain is already taken`,
+      };
+    } else {
+      return {
+        error: error.message,
+      };
+    }
+  }
+};
 export const createSite = async (formData: FormData) => {
   const session = await getSession();
   if (!session?.user.id) {
@@ -31,7 +74,7 @@ export const createSite = async (formData: FormData) => {
   const name = formData.get("name") as string;
   const description = formData.get("description") as string;
   const subdomain = formData.get("subdomain") as string;
-
+const projectId = formData.get("projectId") as string;
   try {
     const response = await prisma.site.create({
       data: {
@@ -43,6 +86,11 @@ export const createSite = async (formData: FormData) => {
             id: session.user.id,
           },
         },
+        project: {
+          connect: {
+            id: projectId,
+          }
+        }
       },
     });
     await revalidateTag(

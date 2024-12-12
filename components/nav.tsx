@@ -67,12 +67,14 @@ export default function Nav({ children }: { children: ReactNode }) {
   const { id } = useParams() as { id?: string };
 
   const [siteId, setSiteId] = useState<string | null>();
-
+const [projectId, setProjectId] = useState<string | null>();
   useEffect(() => {
     if (segments[0] === "post" && id) {
       getSiteFromPostId(id).then((id) => {
         setSiteId(id);
       });
+    } else if (segments[0]==="project" && id){
+setProjectId(id);
     }
   }, [segments, id]);
 
@@ -103,6 +105,26 @@ export default function Nav({ children }: { children: ReactNode }) {
           icon: <Settings width={18} />,
         },
       ];
+    }else if (segments[0] === "project" && id) {
+      return [
+        {
+          name: "Back to All Projects",
+          href: projectId ? `/project/${projectId}` : "/projects",
+          icon: <ArrowLeft width={18} />,
+        },
+        {
+          name: "Editor",
+          href: `/post/${id}`,
+          isActive: segments.length === 2,
+          icon: <Edit3 width={18} />,
+        },
+        {
+          name: "Settings",
+          href: `/post/${id}/settings`,
+          isActive: segments.includes("settings"),
+          icon: <Settings width={18} />,
+        },
+      ]; 
     } else if (segments[0] === "post" && id) {
       return [
         {
@@ -130,6 +152,12 @@ export default function Nav({ children }: { children: ReactNode }) {
         href: "/",
         isActive: segments.length === 0,
         icon: <LayoutDashboard width={18} />,
+      },
+      {
+        name: "Projects",
+        href: "/projects",
+        isActive: segments[0] === "projects",
+        icon: <Globe width={18} />,
       },
       {
         name: "Sites",
